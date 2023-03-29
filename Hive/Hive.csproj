@@ -80,8 +80,13 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Application\Exceptions\InvalidConversionException.cs" />
+        <Compile Include="Application\Exceptions\InvalidParameterException.cs" />
+        <Compile Include="Controllers\Database.cs" />
+        <Compile Include="Extensions.cs" />
         <Compile Include="RVEntry.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Application\HiveProcess.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="App.config" />
