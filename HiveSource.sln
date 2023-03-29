@@ -1,8 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hive", "Hive\Hive.csproj", "{73EFCDF7-BC65-4E69-AD3A-0A03CADE21DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner", "Runner\Runner.csproj", "{8B65F7B1-55C4-429B-A3B4-F097DBB7D202}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73EFCDF7-BC65-4E69-AD3A-0A03CADE21DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73EFCDF7-BC65-4E69-AD3A-0A03CADE21DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73EFCDF7-BC65-4E69-AD3A-0A03CADE21DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73EFCDF7-BC65-4E69-AD3A-0A03CADE21DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B65F7B1-55C4-429B-A3B4-F097DBB7D202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B65F7B1-55C4-429B-A3B4-F097DBB7D202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B65F7B1-55C4-429B-A3B4-F097DBB7D202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B65F7B1-55C4-429B-A3B4-F097DBB7D202}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
