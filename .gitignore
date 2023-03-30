@@ -6,3 +6,4 @@ riderModule.iml
 Build/
 .dll
 .exe
+.pdb
