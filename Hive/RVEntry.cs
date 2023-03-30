@@ -8,6 +8,7 @@ using RGiesecke.DllExport;
 using ArmaTools.ArrayParser;
 using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application;
+using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
 
 namespace Hive
@@ -116,36 +117,33 @@ namespace Hive
             // Or, Make this Attribute Based if the Call is Void but is intended to be blocking?
             if (isVoid)
             {
+                if (methodAttributes.Any(attrib => attrib is SynchronousAttribute))
+                    method.Invoke(null, paramList.ToArray());
                 
                 success = true;
-                return new ArmaString("Void Method Called Sucessfully");
+                return new ArmaString("Void Method Called Successfully");
             }
-
-            //Dummy as True for Now
-            if (true)
+            
+            if (hasAttributes)
             {
-                //TODO: Check for Synchronous Attribute, Invoke and Convert Result
-                //Dummy as Synchronous for Now
-                var result = method.Invoke(null, paramList.ToArray());
+                if (methodAttributes.Any(attrib => attrib is SynchronousAttribute))
+                {
+                    var synchronousResult = method.Invoke(null, paramList.ToArray());
+                    success = true;
+                    return Convert.ChangeType(synchronousResult); 
+                }
                 
-                //Dummy as True for Now
+                //TODO: Check for Asynchronous Attribute (?)
+                var asynchronousResult = IoC.HiveProcess.InvokeTaskAsync(method, paramList.ToArray());
                 success = true;
-                return Convert.ChangeType(result); 
-                
-                
-                //TODO: Check for Asynchronous Attribute (or not, shouldn't matter). Invoke Async and Return TaskID
-                return new ArmaNumber(0 /*TaskID*/);
+                return new ArmaNumber(asynchronousResult);
             }
             
-            //TODO: Invoke Task on Background Thread and Return to RVExtension
-            
-            //TODO: Implement InvokeTaskAsync & InvokeTaskAndForget in to HiveProcess
-            
-            
+            IoC.HiveProcess.InvokeTaskAndForget(method, paramList.ToArray());
             success = true;
             
             //Dummy Return
-            return new ArmaArray("Hello", "World", 123, true, null, new ArmaArray(4, 5, 6));
+            return new ArmaArray("Call was Fire & Forget");
         }
         
     }

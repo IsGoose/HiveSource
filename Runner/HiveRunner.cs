@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Hive.Application;
 
 namespace Runner
@@ -8,14 +12,9 @@ namespace Runner
     {
         static void Main()
         {
-            //Dummy this For Now
-            HiveProcess.IsSetup = true;
-            
-            
             var sb = new StringBuilder();
-            Hive.RVEntry.RVExtension(sb,1000,"[\"Database\",\"Sync\",[\"Dummy\",\"Parameters\",\"Here\"]]");
+            Hive.RVEntry.RVExtension(sb,1000,"[\"System\",\"Setup\",false]");
             Console.WriteLine(sb);
-
             Console.ReadLine();
         }
     }

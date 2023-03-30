@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Management;
 using ArmaTools.ArrayParser;
 using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application.Exceptions;
@@ -10,7 +13,23 @@ namespace Hive
         //TODO: Move to ArrayParser Natively
         public static ArmaArray FromList(this ArmaArray array, List<ArmaTypeBase> list)
         {
-            return list[0] as ArmaArray;
+            var result = new ArmaArray();
+            if (list[0] is ArmaArray)
+                result = list[0] as ArmaArray;
+            else
+                result.Append(list[0]);
+            
+            return result;
+        }
+        
+        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
+        {
+            using var e = source.GetEnumerator();
+            if (!e.MoveNext()) yield break;
+            for (var value = e.Current; e.MoveNext(); value = e.Current)
+            {
+                yield return value;
+            }
         }
     }
 
