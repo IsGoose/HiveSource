@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using ArmaTools.ArrayParser;
 using Hive.Application;
 using Hive.Application.Attributes;
+using Hive.Application.Enums;
 using Hive.Application.Exceptions;
 using Newtonsoft.Json;
 
@@ -38,6 +39,11 @@ namespace Hive.Controllers
             //Instantiate on IoC Container
             IoC.HiveProcess = new HiveProcess();
             //TODO: Database Connector
+            IoC.DBInterface = new DBInterface();
+            IoC.DBInterface.Connect();
+
+            //This is Up for Consideration. Schema Structure *might* be Useful at some point..
+            //IoC.DBInterface.DescribeSchema();
             
             //Set Global Parser Options 
             Parser.SetThrowOnBadLooseType(true);

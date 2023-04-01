@@ -11,7 +11,7 @@
         <AssemblyName>Hive</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>8</LangVersion>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>x86</PlatformTarget>
@@ -90,6 +90,8 @@
         <Compile Include="Application\Attributes\AsynchronousAttribute.cs" />
         <Compile Include="Application\Attributes\SynchronousAttribute.cs" />
         <Compile Include="Application\Configuration.cs" />
+        <Compile Include="Application\DBInterface.cs" />
+        <Compile Include="Application\Enums\ArrayDimensionOptions.cs" />
         <Compile Include="Application\Exceptions\InvalidConversionException.cs" />
         <Compile Include="Application\Exceptions\InvalidParameterException.cs" />
         <Compile Include="Application\IoC.cs" />

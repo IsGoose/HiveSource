@@ -4,5 +4,6 @@
     {
         public static HiveProcess HiveProcess;
         public static Configuration Configuration;
+        public static DBInterface DBInterface;
     }
 }
