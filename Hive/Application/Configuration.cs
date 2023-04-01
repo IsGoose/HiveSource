@@ -18,5 +18,8 @@ namespace Hive.Application
         
         [JsonProperty(Required = Required.Default)]
         public bool? SpawnConsole { get; set; }
+        
+        [JsonProperty(Required = Required.Default)]
+        public bool? UpdateRevertsSoftDeletion { get; set; }
     }
 }

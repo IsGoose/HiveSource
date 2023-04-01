@@ -1,7 +1,8 @@
 {
-    "MySqlHost" : "host",
-    "MySqlUser" : "user",
-    "MySqlSchema" : "schema",
-    "MySqlPassword" : "password",
-	"SpawnConsole" : true
+  "MySqlHost" : "host",
+  "MySqlUser" : "user",
+  "MySqlSchema" : "schema",
+  "MySqlPassword" : "password",
+  "SpawnConsole" : true,
+  "UpdateRevertsSoftDeletion" : true
 }

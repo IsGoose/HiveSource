@@ -41,9 +41,7 @@ namespace Hive.Controllers
             //TODO: Database Connector
             IoC.DBInterface = new DBInterface();
             IoC.DBInterface.Connect();
-
-            //This is Up for Consideration. Schema Structure *might* be Useful at some point..
-            //IoC.DBInterface.DescribeSchema();
+            IoC.DBInterface.DescribeSchema();
             
             //Set Global Parser Options 
             Parser.SetThrowOnBadLooseType(true);
