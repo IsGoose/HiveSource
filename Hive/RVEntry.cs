@@ -89,7 +89,7 @@ namespace Hive
                 var type = parameter.ParameterType;
                 if(type == typeof(ArmaArray))
                 {
-                    if (parameters.Length == 1)
+                    if (methodParams.Length == 1)
                         paramList.Add(providedParameters);
                     else
                         paramList.Add(providedParameters.SelectArray(paramList.Count));
@@ -119,7 +119,8 @@ namespace Hive
             {
                 if (methodAttributes.Any(attrib => attrib is SynchronousAttribute))
                     method.Invoke(null, paramList.ToArray());
-                
+                else 
+                    IoC.HiveProcess.InvokeTaskAndForget(method, paramList.ToArray());
                 success = true;
                 return new ArmaString("Void Method Called Successfully");
             }
