@@ -3,6 +3,7 @@
   "MySqlUser" : "user",
   "MySqlSchema" : "schema",
   "MySqlPassword" : "password",
-  "SpawnConsole" : true,
-  "UpdateRevertsSoftDeletion" : true
+  "UseExternalConsole" : false,
+  "UpdateRevertsSoftDeletion" : true,
+  "LogLevel" : "Trace"
 }

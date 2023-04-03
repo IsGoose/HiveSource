@@ -113,8 +113,6 @@ namespace Hive
                 throw new InvalidParameterException($"Unable to Match Type \"{type.Name}\" to any ArmA-Supported Data Type (Paramater {paramList.Count})");
             }
 
-            //TODO: Possibly Pass this off to background Thread, MethodInfo.Invoke is invoked on current thread
-            // Or, Make this Attribute Based if the Call is Void but is intended to be blocking?
             if (isVoid)
             {
                 if (methodAttributes.Any(attrib => attrib is SynchronousAttribute))
@@ -143,7 +141,6 @@ namespace Hive
             IoC.HiveProcess.InvokeTaskAndForget(method, paramList.ToArray());
             success = true;
             
-            //Dummy Return
             return new ArmaArray("Call was Fire & Forget");
         }
         

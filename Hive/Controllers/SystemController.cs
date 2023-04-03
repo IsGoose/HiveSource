@@ -2,11 +2,11 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using ArmaTools.ArrayParser;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
+using Hive.Application.Logging;
 using Newtonsoft.Json;
 
 namespace Hive.Controllers
@@ -22,19 +22,33 @@ namespace Hive.Controllers
                 return true;
             _basePath = AppDomain.CurrentDomain.BaseDirectory;
             
-            //TODO: Implement a Proper Internal Logging Solution
+            //TODO: Move Internal Logging to InternalLogger
             File.Delete(Path.Combine(_basePath,"HiveLog.txt"));
             File.Delete(Path.Combine(_basePath,"HiveErrorLog.txt"));
 
             //Load Hive Configuration from OA Server Config Directory 
             IoC.Configuration = LoadConfig(isProduction);
 
-            if (IoC.Configuration.SpawnConsole ?? false)
-                AllocConsole();
-
-            //Instantiate on IoC Container
+            //Internal Logging for Current Session (Separate Console or Server Console Window)
+            if (IoC.Configuration.UseExternalConsole)
+                IoC.InternalLogger = new ConsoleLogger();
+            else
+                IoC.InternalLogger = new ProcessLogger();
+            
+            IoC.InternalLogger.Initialise();
+            
+            //Test Logs
+            IoC.InternalLogger.Trace("This is a Trace Log");
+            IoC.InternalLogger.Debug("This is a Debug Log");
+            IoC.InternalLogger.Info("This is an Info Log");
+            IoC.InternalLogger.Warn("This is a Warn Log");
+            IoC.InternalLogger.Error("This is an Error Log");
+            IoC.InternalLogger.Fatal("This is a Fatal Log");
+            
+            //TODO: Implement LogController for Logging from Server
+            
             IoC.HiveProcess = new HiveProcess();
-            //TODO: Database Connector
+
             IoC.DBInterface = new DBInterface();
             IoC.DBInterface.Connect();
             IoC.DBInterface.DescribeSchema();
@@ -96,8 +110,5 @@ namespace Hive.Controllers
             return JsonConvert.DeserializeObject<Configuration>(
                 File.ReadAllText(Path.Combine(serverConfigDirectory, "HiveConfig.json")));
         }
-        
-        [DllImport("kernel32")]
-        private static extern bool AllocConsole();
     }
 }

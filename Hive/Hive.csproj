@@ -22,6 +22,7 @@
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>x86</PlatformTarget>
@@ -31,6 +32,7 @@
         <DefineConstants>TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup>
       <PostBuildEvent>xcopy /y $(SolutionDir)Configuration\HiveConfig.json  $(OutDir)</PostBuildEvent>
@@ -92,9 +94,16 @@
         <Compile Include="Application\Configuration.cs" />
         <Compile Include="Application\DBInterface.cs" />
         <Compile Include="Application\Enums\ArrayDimensionOptions.cs" />
+        <Compile Include="Application\Enums\RedrawWindowFlags.cs" />
         <Compile Include="Application\Exceptions\InvalidConversionException.cs" />
         <Compile Include="Application\Exceptions\InvalidParameterException.cs" />
+        <Compile Include="Application\Extern\Structs.cs" />
+        <Compile Include="Application\Extern\Win32.cs" />
         <Compile Include="Application\IoC.cs" />
+        <Compile Include="Application\Logging\ConsoleLogger.cs" />
+        <Compile Include="Application\Logging\ILogger.cs" />
+        <Compile Include="Application\Logging\LogLevel.cs" />
+        <Compile Include="Application\Logging\ProcessLogger.cs" />
         <Compile Include="Controllers\DatabaseController.cs" />
         <Compile Include="Controllers\ExampleController.cs" />
         <Compile Include="Controllers\SystemController.cs" />

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Hive.Application.Logging;
+using Newtonsoft.Json;
 
 namespace Hive.Application
 {
@@ -16,10 +17,13 @@ namespace Hive.Application
         [JsonProperty(Required = Required.Always)]
         public string MySqlSchema { get; set; }
         
-        [JsonProperty(Required = Required.Default)]
-        public bool? SpawnConsole { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        public bool UseExternalConsole { get; set; }
         
         [JsonProperty(Required = Required.Default)]
         public bool? UpdateRevertsSoftDeletion { get; set; }
+        
+        [JsonProperty(Required = Required.Always)]
+        public LogLevel LogLevel { get; set; }
     }
 }
