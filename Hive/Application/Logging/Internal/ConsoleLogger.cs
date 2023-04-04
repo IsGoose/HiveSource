@@ -5,6 +5,7 @@ namespace Hive.Application.Logging.Internal;
 
 public class ConsoleLogger : IInternalLogger
 {
+    private IFileLogger FileLogger;
     private object _lock;
     public void Trace(string log) => Log(log,LogLevel.Trace);
 
@@ -20,12 +21,16 @@ public class ConsoleLogger : IInternalLogger
     public void Initialise()
     {
         _lock = new object();
+        FileLogger = new InternalFileLogger();
+        FileLogger.Initialise();
         AllocConsole();
 
     }
 
     private void Log(string log, LogLevel logLevel)
     {
+        
+        FileLogger.Log(logLevel is LogLevel.Fatal or LogLevel.Error ? "Error" : "Log", $"{DateTime.Now:HH:mm:ss} [{Enum.GetName(typeof(LogLevel), logLevel)}] {log}", logLevel);
         if (logLevel < IoC.Configuration.LogLevel)
             return;
         var consoleColour = logLevel switch

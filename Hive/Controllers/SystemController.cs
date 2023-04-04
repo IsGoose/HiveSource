@@ -30,7 +30,7 @@ namespace Hive.Controllers
             IoC.Configuration = LoadConfig(isProduction);
 
             //Internal Logging for Current Session (Separate Console or Server Console Window)
-            if (IoC.Configuration.UseExternalConsole)
+            if (IoC.Configuration.UseExternalConsole || !isProduction)
                 IoC.InternalLogger = new ConsoleLogger();
             else
                 IoC.InternalLogger = new ProcessLogger();
@@ -47,7 +47,7 @@ namespace Hive.Controllers
             
             //TODO: Implement LogController for Logging from Server
             
-            IoC.HiveProcess = new HiveProcess();
+            IoC.HiveProcess = new HiveProcess(isProduction);
 
             IoC.DBInterface = new DBInterface();
             IoC.DBInterface.Connect();

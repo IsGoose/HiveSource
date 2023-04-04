@@ -10,16 +10,18 @@ namespace Hive.Application.Logging.Internal;
 
 public class ProcessLogger : IInternalLogger
 {
+    private IFileLogger FileLogger;
     private object _lock;
     private Process _serverProcess;
     private IntPtr _textBoxHandle = IntPtr.Zero;
     public void Initialise()
     {
         _lock = new object();
+        FileLogger = new InternalFileLogger();
+        FileLogger.Initialise();
         lock (_lock)
         {
             _serverProcess = Process.GetCurrentProcess();
-            //_openHandle = Win32.OpenProcessKernel(ProcessAccessFlags.All, false, _serverProcess.Id);
             var childWindows = _serverProcess.MainWindowHandle.GetChildWindows().ToArray();
 
             foreach (var child in childWindows)
@@ -33,6 +35,7 @@ public class ProcessLogger : IInternalLogger
         }
 
         if (_textBoxHandle != IntPtr.Zero) return;
+        FileLogger.Log("Error","Hive could Not Get OA Server MainWindowHandle",LogLevel.Fatal);
         Win32.MessageBox(IntPtr.Zero, "Unable to Get MainWindowHandle", "Internal Hive Error",
             0x00000010L | 0x00000000L);
         Win32.ExitProcess(1);
@@ -51,6 +54,7 @@ public class ProcessLogger : IInternalLogger
     
     private void Log(string log,LogLevel logLevel)
     {
+        FileLogger.Log(logLevel is LogLevel.Fatal or LogLevel.Error ? "Error" : "Log", $"{DateTime.Now:HH:mm:ss} [{Enum.GetName(typeof(LogLevel), logLevel)}] {log}", logLevel);
         if (logLevel < IoC.Configuration.LogLevel)
             return;
         
@@ -130,8 +134,6 @@ public class ProcessLogger : IInternalLogger
                 RedrawWindowFlags.UpdateNow | RedrawWindowFlags.AllChildren);
 
         }
-
-
     }
 
 }

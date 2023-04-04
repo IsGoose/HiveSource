@@ -11,12 +11,14 @@ namespace Hive.Application
         private readonly object _lock;
         
         public static bool IsSetup = false;
+        public static bool IsRunningProduction = false;
         public List<Task<object>> Tasks => _tasks;
         
-        public HiveProcess()
+        public HiveProcess(bool isProduction)
         {
             _tasks = new List<Task<object>>();
             _lock = new object();
+            IsRunningProduction = isProduction;
         }
         
         public object InvokeTask(MethodInfo action,object[] parameters)
