@@ -23,9 +23,7 @@ namespace Hive.Controllers
                 return true;
             _basePath = AppDomain.CurrentDomain.BaseDirectory;
             
-            //TODO: Move Internal Logging to InternalLogger
-            File.Delete(Path.Combine(_basePath,"HiveLog.txt"));
-            File.Delete(Path.Combine(_basePath,"HiveErrorLog.txt"));
+            //TODO: Should SystemController:Setup Fail At Any Point, Throw Fatal Error and Exit Process
 
             //Load Hive Configuration from OA Server Config Directory 
             IoC.Configuration = LoadConfig(isProduction);

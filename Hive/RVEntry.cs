@@ -20,6 +20,8 @@ namespace Hive
             [MarshalAs(UnmanagedType.LPStr)] string function)
         {
             outputSize--;
+            
+            //TODO: Implement Internal Logging Throughout Where Applicable
             try
             {
                 //Route Call to Given Controller & Method
