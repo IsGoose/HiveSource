@@ -47,8 +47,8 @@ public class InternalFileLogger : IFileLogger
                     Directory.CreateDirectory(logDirectory);
 
                 LogMap[pair.Key] = logPath;
-                var fileInfo = new FileInfo(logPath);
-                File.AppendAllText(logPath, $"{(fileInfo.Length == 0 ? "":"\n\n")}--- New Session {DateTime.Now:MM/dd/yyyy HH:mm:ss} ---\n");
+                var fileLength = File.Exists(logPath) ? new FileInfo(logPath).Length : 0;
+                File.AppendAllText(logPath, $"{(fileLength == 0 ? "":"\n\n")}--- New Session {DateTime.Now:MM/dd/yyyy HH:mm:ss} ---\n");
             }
         }
     }
