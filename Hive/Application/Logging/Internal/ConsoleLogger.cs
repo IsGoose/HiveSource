@@ -5,7 +5,7 @@ namespace Hive.Application.Logging.Internal;
 
 public class ConsoleLogger : IInternalLogger
 {
-    private IFileLogger FileLogger;
+    private InternalFileLogger FileLogger;
     private object _lock;
     public void Trace(string log) => Log(log,LogLevel.Trace);
 

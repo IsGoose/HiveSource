@@ -25,5 +25,11 @@ namespace Hive.Application
         
         [JsonProperty(Required = Required.Always)]
         public LogLevel LogLevel { get; set; }
+        
+        [JsonProperty(Required = Required.Always)]
+        public string GameLogsDirectory { get; set; }
+        
+        [JsonProperty(Required = Required.Always)]
+        public string[][] GameLogMap { get; set; }
     }
 }

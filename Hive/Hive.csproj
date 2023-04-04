@@ -100,12 +100,14 @@
         <Compile Include="Application\Extern\Structs.cs" />
         <Compile Include="Application\Extern\Win32.cs" />
         <Compile Include="Application\IoC.cs" />
+        <Compile Include="Application\Logging\FileLogger.cs" />
         <Compile Include="Application\Logging\IFileLogger.cs" />
         <Compile Include="Application\Logging\Internal\ConsoleLogger.cs" />
         <Compile Include="Application\Logging\Internal\IInternalLogger.cs" />
         <Compile Include="Application\Logging\Internal\InternalFileLogger.cs" />
         <Compile Include="Application\Logging\Internal\ProcessLogger.cs" />
         <Compile Include="Application\Logging\LogLevel.cs" />
+        <Compile Include="Application\Logging\LogMapInfo.cs" />
         <Compile Include="Controllers\DatabaseController.cs" />
         <Compile Include="Controllers\ExampleController.cs" />
         <Compile Include="Controllers\SystemController.cs" />

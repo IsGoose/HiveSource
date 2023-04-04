@@ -5,5 +5,12 @@
   "MySqlPassword" : "password",
   "UseExternalConsole" : false,
   "UpdateRevertsSoftDeletion" : true,
-  "LogLevel" : "Trace"
+  "LogLevel" : "Trace",
+  "GameLogsDirectory" : "C:\\Directory\\For\\Where\\You\\Want\\Game\\Logs\\To\\Go",
+  "GameLogMap" : [
+    ["LogType1","LogFile1"],
+    ["LogType2","ChildFolder1\\LogFile2"],
+    ["LogTypeWithWildcard","{0}"],
+    ["LogTypeInChildFolderAndWildcard","ChildFolder2\\{0}"]
+  ]
 }

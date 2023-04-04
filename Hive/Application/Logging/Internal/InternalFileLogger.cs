@@ -47,7 +47,8 @@ public class InternalFileLogger : IFileLogger
                     Directory.CreateDirectory(logDirectory);
 
                 LogMap[pair.Key] = logPath;
-                File.AppendAllText(logPath, $"New Session {DateTime.Now:MM/dd/yyyy HH:mm:ss}\n");
+                var fileInfo = new FileInfo(logPath);
+                File.AppendAllText(logPath, $"{(fileInfo.Length == 0 ? "":"\n\n")}--- New Session {DateTime.Now:MM/dd/yyyy HH:mm:ss} ---\n");
             }
         }
     }
@@ -60,7 +61,7 @@ public class InternalFileLogger : IFileLogger
         //Yes this Can Infinitely Recurse if you Remove Error from LogMap...
         if (!LogMap.ContainsKey(alias))
         {
-            Log("Error",$"Log Alias \"{alias}\" is Not in LogMap",LogLevel.Error);
+            Log("Error",$"Log Alias \"{alias}\" is Not in LogMap (Alias is Case Sensitive!)",LogLevel.Error);
         }
 
         var logDir = LogMap[alias];
@@ -69,8 +70,5 @@ public class InternalFileLogger : IFileLogger
         {
             File.AppendAllText(logDir,log + "\n");
         }
-
-
-
     }
 }

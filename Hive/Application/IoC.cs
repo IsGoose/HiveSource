@@ -9,5 +9,6 @@ namespace Hive.Application
         public static Configuration Configuration;
         public static DBInterface DBInterface;
         public static IInternalLogger InternalLogger;
+        public static FileLogger FileLogger;
     }
 }

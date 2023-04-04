@@ -10,7 +10,7 @@ namespace Hive.Application.Logging.Internal;
 
 public class ProcessLogger : IInternalLogger
 {
-    private IFileLogger FileLogger;
+    private InternalFileLogger FileLogger;
     private object _lock;
     private Process _serverProcess;
     private IntPtr _textBoxHandle = IntPtr.Zero;

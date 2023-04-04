@@ -6,6 +6,7 @@ using ArmaTools.ArrayParser;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
+using Hive.Application.Logging;
 using Hive.Application.Logging.Internal;
 using Newtonsoft.Json;
 
@@ -34,8 +35,10 @@ namespace Hive.Controllers
                 IoC.InternalLogger = new ConsoleLogger();
             else
                 IoC.InternalLogger = new ProcessLogger();
-            
+
             IoC.InternalLogger.Initialise();
+            IoC.FileLogger = new FileLogger();
+            IoC.FileLogger.Initialise();
             
             //Test Logs
             IoC.InternalLogger.Trace("This is a Trace Log");

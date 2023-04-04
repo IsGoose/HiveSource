@@ -28,6 +28,17 @@ namespace Hive
                 yield return value;
             }
         }
+
+        public static string Format(this string input, ArmaArray parameters)
+        {
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var element = parameters.Elements[i];
+                input = input.Replace($"{{{i}}}", element is ArmaString armaString ? armaString.Value : element.ToString());
+            }
+
+            return input;
+        }
     }
 
     public static class Convert
