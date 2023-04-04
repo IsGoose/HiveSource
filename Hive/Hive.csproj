@@ -101,7 +101,7 @@
         <Compile Include="Application\Extern\Win32.cs" />
         <Compile Include="Application\IoC.cs" />
         <Compile Include="Application\Logging\ConsoleLogger.cs" />
-        <Compile Include="Application\Logging\ILogger.cs" />
+        <Compile Include="Application\Logging\IInternalLogger.cs" />
         <Compile Include="Application\Logging\LogLevel.cs" />
         <Compile Include="Application\Logging\ProcessLogger.cs" />
         <Compile Include="Controllers\DatabaseController.cs" />
