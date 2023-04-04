@@ -10,15 +10,24 @@ using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
+using Hive.Application.Logging;
+using Hive.Application.Logging.Internal;
+using RGiesecke.DllExport;
 
 namespace Hive
 {
     public class RVEntry
     {
+		public static InternalFileLogger tmp_logger = null;
         [DllExport("_RVExtension@12", CallingConvention = CallingConvention.Winapi)]
         public static void RVExtension(StringBuilder output, int outputSize,
             [MarshalAs(UnmanagedType.LPStr)] string function)
         {
+			if (tmp_logger == null)
+			{
+				tmp_logger = new InternalFileLogger();
+				tmp_logger.Initialise();
+			}
             outputSize--;
             
             //TODO: Implement Internal Logging Throughout Where Applicable
@@ -43,6 +52,7 @@ namespace Hive
             {
                 //TODO: Write Error to Log File
                 Console.WriteLine(e);
+				tmp_logger.Log("Error", $"{e.ToString()}", LogLevel.Error);
                 Console.WriteLine("False on Throw");
                 //Always Return False in Event of Thrown Exception
                 output.Append(new ArmaArray(false));

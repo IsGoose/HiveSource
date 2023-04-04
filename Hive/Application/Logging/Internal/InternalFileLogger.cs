@@ -55,7 +55,7 @@ public class InternalFileLogger : IFileLogger
 
     public void Log(string alias,string log, LogLevel logLevel, ArmaArray wildcards = null)
     {
-        if (logLevel < IoC.Configuration.LogLevel && !OverrideLogLevel.Contains(alias))
+		if (IoC.Configuration != null && logLevel < IoC.Configuration.LogLevel && !OverrideLogLevel.Contains(alias))
             return;
         
         if (!LogMap.ContainsKey(alias))
