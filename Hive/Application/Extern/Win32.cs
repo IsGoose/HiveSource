@@ -1,12 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using Hive.Application.Enums;
 
 namespace Hive.Application.Extern;
 
-public static unsafe class Win32
+//TODO: Open for Consideration...
+/*
+ * This Attribute Stops the Run-Time Security Check & Stack Walk. Improves P/Invoke Calls.
+ * "Incorrect use can create security weaknesses"
+ * See: https://learn.microsoft.com/en-us/dotnet/api/system.security.suppressunmanagedcodesecurityattribute?view=net-7.0
+*/ 
+[SuppressUnmanagedCodeSecurity]
+public static class Win32
 {
     public const int PROCESS_VM_WRITE = 0x0020;
     public const int PROCESS_VM_OPERATION = 0x0008;
