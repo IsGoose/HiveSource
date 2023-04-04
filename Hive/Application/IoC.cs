@@ -1,4 +1,5 @@
 ﻿using Hive.Application.Logging;
+using Hive.Application.Logging.Internal;
 
 namespace Hive.Application
 {

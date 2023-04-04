@@ -6,7 +6,7 @@ using ArmaTools.ArrayParser;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
-using Hive.Application.Logging;
+using Hive.Application.Logging.Internal;
 using Newtonsoft.Json;
 
 namespace Hive.Controllers

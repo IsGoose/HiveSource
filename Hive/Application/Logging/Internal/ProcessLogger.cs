@@ -6,7 +6,7 @@ using System.Text;
 using Hive.Application.Enums;
 using Hive.Application.Extern;
 
-namespace Hive.Application.Logging;
+namespace Hive.Application.Logging.Internal;
 
 public class ProcessLogger : IInternalLogger
 {

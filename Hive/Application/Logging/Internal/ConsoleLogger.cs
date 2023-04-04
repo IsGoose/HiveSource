@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Hive.Application.Logging;
+namespace Hive.Application.Logging.Internal;
 
 public class ConsoleLogger : IInternalLogger
 {

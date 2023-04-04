@@ -1,4 +1,4 @@
-﻿namespace Hive.Application.Logging;
+﻿namespace Hive.Application.Logging.Internal;
 
 public interface IInternalLogger
 {
