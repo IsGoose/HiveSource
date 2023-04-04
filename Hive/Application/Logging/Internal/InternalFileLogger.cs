@@ -57,10 +57,17 @@ public class InternalFileLogger : IFileLogger
     {
         if (logLevel < IoC.Configuration.LogLevel && !OverrideLogLevel.Contains(alias))
             return;
-
-        //Yes this Can Infinitely Recurse if you Remove Error from LogMap...
+        
         if (!LogMap.ContainsKey(alias))
         {
+            if (!LogMap.ContainsKey("Error"))
+            {
+                var safeErrorPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HiveLogs");
+                if (!Directory.Exists(safeErrorPath))
+                    Directory.CreateDirectory(safeErrorPath);
+                LogMap.Add("Error",Path.Combine(safeErrorPath,"Error.txt"));
+            }
+                
             Log("Error",$"Log Alias \"{alias}\" is Not in LogMap (Alias is Case Sensitive!)",LogLevel.Error);
         }
 
