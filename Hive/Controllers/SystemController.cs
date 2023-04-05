@@ -116,19 +116,34 @@ namespace Hive.Controllers
 
 			//Parse -config Value and Get Config Directory 
 			var serverConfigFilePath = new string(serverConfigArg.Skip(serverConfigArg.IndexOf('=') + 1).ToArray());
-			serverConfigFilePath = serverConfigFilePath.TrimStart(' ').TrimEnd(' ','\"');
+			serverConfigFilePath = serverConfigFilePath.Trim('\\',' ');
 
-			var serverConfigDirectory = Path.GetDirectoryName(serverConfigFilePath);
-			if (string.IsNullOrEmpty(serverConfigDirectory) ||
-			    serverConfigDirectory.IndexOfAny(Path.GetInvalidPathChars()) >= 0 ||
-			    !Directory.Exists(serverConfigDirectory))
-				throw new DirectoryNotFoundException(
-					$"Server Config Directory \"{serverConfigDirectory}\" Does Not Exist");
+			var serverConfigDirectory = "";
+			
+			if (!File.Exists(Path.Combine(_basePath, serverConfigFilePath)))
+			{
+				//-config is absolute
+				serverConfigDirectory = Path.GetDirectoryName(serverConfigFilePath);
+				if (string.IsNullOrEmpty(serverConfigDirectory) ||
+				    serverConfigDirectory.IndexOfAny(Path.GetInvalidPathChars()) >= 0 ||
+				    !Directory.Exists(serverConfigDirectory))
+					throw new DirectoryNotFoundException(
+						$"Server Config Directory \"{serverConfigDirectory}\" Does Not Exist");
 			
 
-			if (!File.Exists(Path.Combine(serverConfigDirectory, "HiveConfig.json")))
-				throw new FileNotFoundException($"HiveConfig.json Could not Be Found in {serverConfigDirectory}\\");
-
+				if (!File.Exists(Path.Combine(serverConfigDirectory, "HiveConfig.json")))
+					throw new FileNotFoundException($"HiveConfig.json Could not Be Found in {serverConfigDirectory}\\");
+			}
+			else
+			{
+				//-config is relative
+				serverConfigDirectory = Path.GetDirectoryName(Path.Combine(_basePath, serverConfigFilePath));
+				if (string.IsNullOrEmpty(serverConfigDirectory) ||
+				    serverConfigDirectory.IndexOfAny(Path.GetInvalidPathChars()) >= 0 ||
+				    !Directory.Exists(serverConfigDirectory))
+					throw new DirectoryNotFoundException(
+						$"Server Config Directory \"{serverConfigDirectory}\" Does Not Exist");
+			}
 			
 			//Finally, get the Configuration
 			try
