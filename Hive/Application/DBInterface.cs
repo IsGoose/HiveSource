@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application.Enums;
@@ -10,8 +11,7 @@ namespace Hive.Application
 {
     public class DBInterface
     {
-        private string _connectionString;
-        private MySqlConnection _mySqlConnection;
+        private MySqlConnectionStringBuilder _connectionString;
         private readonly object _lock;
 
         private Dictionary<string, ArmaArray> _schemaStructure;
@@ -23,8 +23,18 @@ namespace Hive.Application
 
         public void Connect()
         {
-            _connectionString = $"Server={IoC.Configuration.MySqlHost};Database={IoC.Configuration.MySqlSchema};Uid={IoC.Configuration.MySqlUser};Pwd={IoC.Configuration.MySqlPassword};";
-            _mySqlConnection = new MySqlConnection(_connectionString);
+            _connectionString = new MySqlConnectionStringBuilder()
+            {
+                Server = IoC.Configuration.MySqlHost,
+                Database = IoC.Configuration.MySqlSchema,
+                UserID = IoC.Configuration.MySqlUser,
+                Password = IoC.Configuration.MySqlPassword,
+                ConnectionLifeTime = 21600,
+                ConnectionTimeout = 1,
+                MinimumPoolSize = 10
+            };
+            var _mySqlConnection = new MySqlConnection(_connectionString.GetConnectionString(true));
+
             _mySqlConnection.Open();
 
             if (!_mySqlConnection.Ping())
@@ -54,61 +64,59 @@ namespace Hive.Application
 
             var result = new ArmaArray();
             var readCount = 0;
-            
-            lock (_lock)
+            using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = baseQuery.ToString();
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                var reader = new MySqlCommand(baseQuery.ToString(), _mySqlConnection).ExecuteReader();
-                while (reader.Read())
+                var dbData = new List<object>();
+                var isDeleted = false;
+
+                for (int i = 0; i < reader.FieldCount; i++)
                 {
-                    var dbData = new List<object>();
-                    var isDeleted = false;
-
-                    for (int i = 0; i < reader.FieldCount; i++)
+                    var columnData = reader[i];
+                    var columnName = reader.GetName(i);
+                    //Check if Row is Marked as Deleted
+                    if (columnName == "Deleted" && (sbyte)columnData == 1)
                     {
-                        var columnData = reader[i];
-                        var columnName = reader.GetName(i);
-                        //Check if Row is Marked as Deleted
-                        if (columnName == "Deleted" && (sbyte)columnData == 1)
-                        {
-                            isDeleted = true;
-                            break;
-                        }
-
-                        //Handle Column Data and Push to List
-                        if (columnData == DBNull.Value)
-                        {
-                            dbData.Add(null);
-                            continue;
-                        }
-
-                        var dataType = reader.GetDataTypeName(i);
-                        
-                        
-                        if(dataType == "TINYINT" && columnData.GetType() != typeof(bool))
-                            dbData.Add((sbyte) columnData == 1);
-                        else 
-                            dbData.Add(columnData);
-
+                        isDeleted = true;
+                        break;
                     }
-                    
-                    //Skip Appending Row to Result Array if Marked for Deletion
-                    if(isDeleted) continue;
-                    
-                    //Change how Results are Pushed to Final Array based on Given Option
-                    if(arrayDimensionOptions == ArrayDimensionOptions.MultiToSingle)
-                        result.AppendRange(new ArmaArray(dbData.ToArray()));
-                    else
-                        result.Append(new ArmaArray(dbData.ToArray()));
-                    readCount++;
-                }
-                reader.Dispose();
 
-                //Return a Single Result as Single-Dim Array if only 1 Row was Read and No Options Provided
-                if (readCount == 1 && arrayDimensionOptions == ArrayDimensionOptions.None)
-                    result = result.SelectArray(0);
+                    //Handle Column Data and Push to List
+                    if (columnData == DBNull.Value)
+                    {
+                        dbData.Add(null);
+                        continue;
+                    }
+
+                    var dataType = reader.GetDataTypeName(i);
+                    
+                    if(dataType == "TINYINT" && columnData.GetType() != typeof(bool))
+                        dbData.Add((sbyte) columnData == 1);
+                    else 
+                        dbData.Add(columnData);
+
+                }
+                
+                //Skip Appending Row to Result Array if Marked for Deletion
+                if(isDeleted) continue;
+                
+                //Change how Results are Pushed to Final Array based on Given Option
+                if(arrayDimensionOptions == ArrayDimensionOptions.MultiToSingle)
+                    result.AppendRange(new ArmaArray(dbData.ToArray()));
+                else
+                    result.Append(new ArmaArray(dbData.ToArray()));
+                readCount++;
             }
 
-            return result;
+            //Return a Single Result as Single-Dim Array if only 1 Row was Read and No Options Provided
+            if (readCount == 1 && arrayDimensionOptions == ArrayDimensionOptions.None)
+                result = result.SelectArray(0);
+
+                return result;
         }
 
         /// <summary>
@@ -274,7 +282,8 @@ namespace Hive.Application
             var tableNames = new List<string>();
             
             //Read Table Names in Schema
-            using (var tableReader = ReadRaw("SHOW TABLES"))
+            using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
+            using (var tableReader = ReadRaw("SHOW TABLES",connection))
             {
                 while (tableReader.Read())
                 {
@@ -286,7 +295,7 @@ namespace Hive.Application
             foreach (var table in tableNames)
             {
                 var tableStructure = new ArmaArray();
-                using (var describeReader = ReadRaw($"DESCRIBE `{table}`"))
+                using (var describeReader = ReadRaw($"DESCRIBE `{table}`",connection))
                 {
                     while (describeReader.Read())
                     {
@@ -306,13 +315,14 @@ namespace Hive.Application
         /// </summary>
         /// <param name="command">MySQL Query to Execute</param>
         /// <returns>Number of Affected Rows</returns>
-        public int WriteRaw(string command)
+        public int WriteRaw(string statement)
         {
             var affectedRows = 0;
-            lock (_lock)
-            {
-                affectedRows = new MySqlCommand(command, _mySqlConnection).ExecuteNonQuery();
-            }
+            using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = statement;
+            affectedRows = command.ExecuteNonQuery();
 
             return affectedRows;
         }
@@ -322,6 +332,14 @@ namespace Hive.Application
         /// </summary>
         /// <param name="command">MySQL Query to Execute</param>
         /// <returns>MySqlDataReader from Executed Query</returns>
-        public MySqlDataReader ReadRaw(string command) => new MySqlCommand(command, _mySqlConnection).ExecuteReader();
+        public MySqlDataReader ReadRaw(string statement,MySqlConnection connection)
+        {
+
+            if(connection.State != ConnectionState.Open)
+                connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = statement;
+            return command.ExecuteReader();
+        } 
     }
 }
