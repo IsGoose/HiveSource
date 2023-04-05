@@ -21,17 +21,15 @@ namespace Hive
         {
             outputSize--;
             
-            //TODO: Implement Internal Logging Throughout Where Applicable
             try
             {
                 //Route Call to Given Controller & Method
                 var result = RouteCall(function,out bool success);
-                
                 //Record Success & Result
                 var returnResult = new ArmaArray(success);
-                if(success && !(result is null))
+                if(success && result is not null)
                     returnResult.Append(result);
-                
+
                 //TODO: Check Size of Result | Max Return Limit
                 //TODO: Implement Way to Retrieve Results that Exceed Max Return Limit (Return Path to .sqf File that can be Compiled)
                 /*
@@ -40,13 +38,16 @@ namespace Hive
                 
                 //Append Result to RVExt Return
                 output.Append(returnResult);
-                
+                IoC.InternalLogger.Info($"Hive Call: {function}");
+
             }
             catch (Exception e)
             {
-                //TODO: Write Error to Log File
-                Console.WriteLine(e);
-                Console.WriteLine("False on Throw");
+                var exceptionMessage = e.Message;
+                #if DEBUG
+                exceptionMessage = e.ToString();
+                #endif
+                IoC.InternalLogger.Error($"Exception Thrown: {exceptionMessage}");
                 //Always Return False in Event of Thrown Exception
                 output.Append(new ArmaArray(false));
             }
@@ -117,7 +118,6 @@ namespace Hive
                 }
                 throw new InvalidParameterException($"Unable to Match Type \"{type.Name}\" to any ArmA-Supported Data Type (Paramater {paramList.Count})");
             }
-
             if (isVoid)
             {
                 if (methodAttributes.Any(attrib => attrib is SynchronousAttribute))

@@ -23,6 +23,7 @@ public class ConsoleLogger : IInternalLogger
         _lock = new object();
         FileLogger = new InternalFileLogger();
         FileLogger.Initialise();
+        this.Debug("ConsoleLogger Initialised");
         AllocConsole();
 
     }
@@ -36,7 +37,8 @@ public class ConsoleLogger : IInternalLogger
         var consoleColour = logLevel switch
         {
             //Green
-            LogLevel.Trace or LogLevel.Debug or LogLevel.Info => ConsoleColor.Gray,
+            LogLevel.Trace or LogLevel.Debug => ConsoleColor.White,
+            LogLevel.Info=> ConsoleColor.Green,
             //Yellow (Since Console Does not Have an Orange Colour
             LogLevel.Warn => ConsoleColor.Yellow,
             //Red

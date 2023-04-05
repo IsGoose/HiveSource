@@ -63,6 +63,7 @@ namespace Hive.Controllers
 				});
 
 				HiveProcess.IsSetup = true;
+				IoC.InternalLogger.Info("System Setup Completed. Hive is Ready");
 				return true;
 			}
 			catch (Exception e)

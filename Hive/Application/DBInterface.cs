@@ -41,7 +41,7 @@ namespace Hive.Application
                 throw new Exception(
                     "MySQL Connection Failed, Please Ensure all Hive Configuration Settings are Correct");
             
-            //TODO: Log Successful Connection
+            IoC.InternalLogger.Info($"Connection to MySql @{_connectionString.Server} Successful");
         }
 
         #region Database Abstractions
@@ -116,7 +116,8 @@ namespace Hive.Application
             if (readCount == 1 && arrayDimensionOptions == ArrayDimensionOptions.None)
                 result = result.SelectArray(0);
 
-                return result;
+            IoC.InternalLogger.Debug($"DBInterface.DBRead Returned {readCount} Reads");
+            return result;
         }
 
         /// <summary>
@@ -308,6 +309,7 @@ namespace Hive.Application
 
                 _schemaStructure.Add(table.ToLower(), tableStructure);
             }
+            IoC.InternalLogger.Info($"Schema Structure for {_connectionString.Database} Read");
         }
 
         /// <summary>
@@ -323,6 +325,7 @@ namespace Hive.Application
             using var command = connection.CreateCommand();
             command.CommandText = statement;
             affectedRows = command.ExecuteNonQuery();
+            IoC.InternalLogger.Debug($"DBInterface.WriteRaw AffectedRows: {affectedRows} with Statement: {statement}");
 
             return affectedRows;
         }
@@ -339,6 +342,7 @@ namespace Hive.Application
                 connection.Open();
             using var command = connection.CreateCommand();
             command.CommandText = statement;
+            IoC.InternalLogger.Debug($"DBInterface.ReadRaw Executed with Statement: {statement}");
             return command.ExecuteReader();
         } 
     }

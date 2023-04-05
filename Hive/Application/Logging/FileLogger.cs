@@ -42,6 +42,7 @@ public class FileLogger : IFileLogger
             var numberOfWildcards = logPathWildcards.Count;
             LogMap.Add(alias, new LogMapInfo(Path.Combine(IoC.Configuration.GameLogsDirectory,path),numberOfWildcards));
         }
+        IoC.InternalLogger.Debug("FileLogger Initialised");
     }
 
     public void Log(string alias,string log, ArmaArray wildcards = null)

@@ -35,6 +35,7 @@ public class ProcessLogger : IInternalLogger
             }
         }
 
+        this.Debug("ProcessLogger Initialised");
         if (_textBoxHandle != IntPtr.Zero) return;
         FileLogger.Log("Error","Hive could Not Get OA Server MainWindowHandle",LogLevel.Fatal);
         Win32.MessageBox(IntPtr.Zero, "Unable to Get MainWindowHandle", "Internal Hive Error",
@@ -64,8 +65,9 @@ public class ProcessLogger : IInternalLogger
 
             var colourRef = logLevel switch
             {
-                //Green
-                LogLevel.Trace or LogLevel.Debug or LogLevel.Info => new COLORREF(0xBB, 0xBB, 0xBB),
+                //Grey
+                LogLevel.Trace or LogLevel.Debug => new COLORREF(0xBB, 0xBB, 0xBB),
+                LogLevel.Info => new COLORREF(0x00,0xFF,0x00),
                 //Orange
                 LogLevel.Warn => new COLORREF(0xFF, 0x99, 0x33),
                 //Red
