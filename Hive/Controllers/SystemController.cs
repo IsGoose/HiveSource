@@ -6,8 +6,10 @@ using ArmaTools.ArrayParser;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
+using Hive.Application.Extern;
 using Hive.Application.Logging;
 using Hive.Application.Logging.Internal;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace Hive.Controllers
@@ -23,53 +25,73 @@ namespace Hive.Controllers
 				return true;
 			_basePath = AppDomain.CurrentDomain.BaseDirectory;
 
-			//TODO: Should SystemController:Setup Fail At Any Point, Throw Fatal Error and Exit Process
-
-			//Load Hive Configuration from OA Server Config Directory 
-			IoC.Configuration = LoadConfig(isProduction);
-
-			//Internal Logging for Current Session (Separate Console or Server Console Window)
-			if (IoC.Configuration.UseExternalConsole || !isProduction)
-				IoC.InternalLogger = new ConsoleLogger();
-			else
-				IoC.InternalLogger = new ProcessLogger();
-
-			IoC.InternalLogger.Initialise();
-			IoC.FileLogger = new FileLogger();
-			IoC.FileLogger.Initialise();
-
-			//Test Logs
-			IoC.InternalLogger.Trace("This is a Trace Log");
-			IoC.InternalLogger.Debug("This is a Debug Log");
-			IoC.InternalLogger.Info("This is an Info Log");
-			IoC.InternalLogger.Warn("This is a Warn Log");
-			IoC.InternalLogger.Error("This is an Error Log");
-			IoC.InternalLogger.Fatal("This is a Fatal Log");
-
-			//TODO: Implement LogController for Logging from Server
-
-			IoC.HiveProcess = new HiveProcess(isProduction);
-
-			IoC.DBInterface = new DBInterface();
-			IoC.DBInterface.Connect();
-			IoC.DBInterface.DescribeSchema();
-
-			//Set Global Parser Options 
-			Parser.SetThrowOnBadLooseType(true);
-
-			//Must Set NumberFormatInfo Explicitly, Different Regions format Numbers Differently, Arma & Hive Will not Interface Properly with Numbers
-			Parser.SetNumberFormatInfo(new NumberFormatInfo()
+			try
 			{
-				NumberDecimalSeparator = ".",
-				NumberGroupSeparator = "",
-				CurrencyDecimalSeparator = ".",
-				CurrencyGroupSeparator = "",
-				PercentDecimalSeparator = ".",
-				PercentGroupSeparator = ""
-			});
+				//Load Hive Configuration from OA Server Config Directory 
+				IoC.Configuration = LoadConfig(isProduction);
 
-			HiveProcess.IsSetup = true;
-			return true;
+				//Internal Logging for Current Session (Separate Console or Server Console Window)
+				if (IoC.Configuration.UseExternalConsole || !isProduction)
+					IoC.InternalLogger = new ConsoleLogger();
+				else
+					IoC.InternalLogger = new ProcessLogger();
+
+				IoC.InternalLogger.Initialise();
+				IoC.FileLogger = new FileLogger();
+				IoC.FileLogger.Initialise();
+
+				//TODO: Implement LogController for Logging from Server
+
+				IoC.HiveProcess = new HiveProcess(isProduction);
+
+				IoC.DBInterface = new DBInterface();
+				IoC.DBInterface.Connect();
+				IoC.DBInterface.DescribeSchema();
+
+				//Set Global Parser Options 
+				Parser.SetThrowOnBadLooseType(true);
+
+				//Must Set NumberFormatInfo Explicitly, Different Regions format Numbers Differently, Arma & Hive Will not Interface Properly with Numbers
+				Parser.SetNumberFormatInfo(new NumberFormatInfo()
+				{
+					NumberDecimalSeparator = ".",
+					NumberGroupSeparator = "",
+					CurrencyDecimalSeparator = ".",
+					CurrencyGroupSeparator = "",
+					PercentDecimalSeparator = ".",
+					PercentGroupSeparator = ""
+				});
+
+				HiveProcess.IsSetup = true;
+				return true;
+			}
+			catch (Exception e)
+			{
+				//Crash Server Process & Display MessageBox With Internal Exception Info
+				var crashMessage = e switch
+				{
+					JsonException jsonException =>
+						"Error Parsing JSON Configuration. Please Make Sure HiveConfig.json is Correct",
+					IndexOutOfRangeException indexOORException => "GameLogMap Config Option is Invalid",
+					IOException ioException => "IO Error. Please Make Sure File Paths Set in HiveConfig.json Are Correct and are Valid",
+					InvalidOperationException invalidOperationException => "Invalid Operation",
+					MySqlException mySqlException => "Error When Interfacing with MySql. Please Make Sure MySql is Running, and MySql Settings are Correct in HiveConfig.json",
+					_ => "Generic Error"
+				};
+				
+				#if DEBUG
+				crashMessage = $"{crashMessage}{Environment.NewLine}Exception: {e}";
+				#else
+				crashMessage = $"{crashMessage}{Environment.NewLine}Message: {e.Message}";
+				#endif
+				
+				
+				Win32.MessageBox(IntPtr.Zero, crashMessage, "Internal Hive Error",
+					0x00000010L | 0x00000000L);
+				Win32.ExitProcess(1);
+				
+				return false;
+			}
 		}
 
 
@@ -88,34 +110,36 @@ namespace Hive.Controllers
 				arg.StartsWith("-config", StringComparison.CurrentCultureIgnoreCase));
 
 			if (string.IsNullOrEmpty(serverConfigArg))
-			{
 				throw new InvalidParameterException(
 				"Could not Acquire Server Config Parameter from OA Server CommandLine. Please Set the \"-config\" Startup Parameter for OA Server");
-			}
 
 			//Parse -config Value and Get Config Directory 
-			string serverConfigFilePath = new String(serverConfigArg.Skip(serverConfigArg.IndexOf(':') - 1).ToArray());
-			if (serverConfigArg.EndsWith("\""))
-				serverConfigFilePath = serverConfigFilePath.Take(serverConfigFilePath.Count() - 1).ToString();
-			if (serverConfigFilePath.StartsWith("-config="))
-				serverConfigFilePath = serverConfigFilePath.Replace("-config=", String.Empty);
+			var serverConfigFilePath = new string(serverConfigArg.Skip(serverConfigArg.IndexOf('=') + 1).ToArray());
+			serverConfigFilePath = serverConfigFilePath.TrimStart(' ').TrimEnd(' ','\"');
 
-			var parsedConfigPath = new string(serverConfigFilePath.ToArray());
-
-			var serverConfigDirectory = string.Join("\\", parsedConfigPath
-				.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).SkipLast());
-			serverConfigDirectory = Path.Combine(_basePath, serverConfigDirectory);
-
-			if (!Directory.Exists(serverConfigDirectory))
+			var serverConfigDirectory = Path.GetDirectoryName(serverConfigFilePath);
+			if (string.IsNullOrEmpty(serverConfigDirectory) ||
+			    serverConfigDirectory.IndexOfAny(Path.GetInvalidPathChars()) >= 0 ||
+			    !Directory.Exists(serverConfigDirectory))
 				throw new DirectoryNotFoundException(
 					$"Server Config Directory \"{serverConfigDirectory}\" Does Not Exist");
+			
 
 			if (!File.Exists(Path.Combine(serverConfigDirectory, "HiveConfig.json")))
 				throw new FileNotFoundException($"HiveConfig.json Could not Be Found in {serverConfigDirectory}\\");
 
+			
 			//Finally, get the Configuration
-			return JsonConvert.DeserializeObject<Configuration>(
-				File.ReadAllText(Path.Combine(serverConfigDirectory, "HiveConfig.json")));
+			try
+			{
+				return JsonConvert.DeserializeObject<Configuration>(
+					File.ReadAllText(Path.Combine(serverConfigDirectory, "HiveConfig.json")));
+			}
+			catch (Exception e)
+			{
+				throw e;
+			}
+			
 		}
 	}
 }
