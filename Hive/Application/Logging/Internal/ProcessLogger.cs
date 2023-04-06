@@ -22,17 +22,9 @@ public class ProcessLogger : IInternalLogger
         FileLogger.Initialise();
         lock (_lock)
         {
-            _serverProcess = Process.GetCurrentProcess();
-            var childWindows = _serverProcess.MainWindowHandle.GetChildWindows().ToArray();
-
-            foreach (var child in childWindows)
-            {
-                var classname = new StringBuilder(256);
-                Win32.GetClassName(child, classname, classname.Capacity);
-                if (classname.ToString() != "RichEdit20A") continue;
-                _textBoxHandle = child;
-                break;
-            }
+            _serverProcess = Process.GetProcessesByName("arma2oaserver")[0];
+            var processId = _serverProcess.Id;
+            _textBoxHandle = Win32.GetRichEdit(processId);
         }
 
         this.Debug("ProcessLogger Initialised");
@@ -40,7 +32,7 @@ public class ProcessLogger : IInternalLogger
         FileLogger.Log("Error","Hive could Not Get OA Server MainWindowHandle",LogLevel.Fatal);
         Win32.MessageBox(IntPtr.Zero, "Unable to Get MainWindowHandle", "Internal Hive Error",
             0x00000010L | 0x00000000L);
-        Win32.ExitProcess(1);
+        //Win32.ExitProcess(1);
     }
     public void Trace(string log) => Log(log,LogLevel.Trace);
 
@@ -67,7 +59,8 @@ public class ProcessLogger : IInternalLogger
             {
                 //Grey
                 LogLevel.Trace or LogLevel.Debug => new COLORREF(0xBB, 0xBB, 0xBB),
-                LogLevel.Info => new COLORREF(0x00,0xFF,0x00),
+                //Green
+                LogLevel.Info => new COLORREF(0x33,0x99,0x33),
                 //Orange
                 LogLevel.Warn => new COLORREF(0xFF, 0x99, 0x33),
                 //Red

@@ -1,4 +1,6 @@
-﻿namespace Hive.Application.Extern;
+﻿using System;
+
+namespace Hive.Application.Extern;
 
 using System.Runtime.InteropServices;
 
@@ -66,4 +68,11 @@ public struct SETTEXTEX
     public uint flags;
     public uint codepage;
 
+}
+
+public class GetRichEditInfo
+{
+    public uint targetProcId;
+    public IntPtr targetConsole;
+    public IntPtr targetRichEdit;
 }

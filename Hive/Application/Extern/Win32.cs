@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -64,49 +63,72 @@ public static class Win32
     public const int FR_MATCHCASE = 0x00000004;
     public const int FR_DOWN = 0x00000001;
     public const int WM_SETREDRAW = 0x000B;
-    public static IEnumerable<IntPtr> GetChildWindows(this IntPtr parentHandle)
-    {
-        var childWindows = new List<IntPtr>();
-        var resultHandle = GCHandle.Alloc(childWindows);
-        var del = new EnumWindowProc(EnumWindow);
 
-        var child = del;
-        EnumChildWindows(parentHandle, child, GCHandle.ToIntPtr(resultHandle));
-        if(resultHandle.IsAllocated)
-            resultHandle.Free();
-        return childWindows;
+    public static IntPtr GetRichEdit(int processId)
+    {
+        var getRichEditData = new GetRichEditInfo
+        {
+            targetProcId = (uint)processId
+        };
+
+        var richEditDataPtr = GCHandle.Alloc(getRichEditData);
+        EnumWindows(new GetConsoleWindowCallback(GetConsoleWindowProc), GCHandle.ToIntPtr(richEditDataPtr));
+        if (getRichEditData.targetConsole == IntPtr.Zero)
+        {
+            if(richEditDataPtr.IsAllocated)
+                richEditDataPtr.Free();
+            return IntPtr.Zero;
+        }
+
+
+        EnumChildWindows(getRichEditData.targetConsole, new GetRichEditCallback(GetRichEditProc),
+            GCHandle.ToIntPtr(richEditDataPtr));
+        if(richEditDataPtr.IsAllocated)
+            richEditDataPtr.Free();
+        return getRichEditData.targetRichEdit;
     }
     
-    private static bool EnumWindow(IntPtr handle, IntPtr pointer)
+    private static bool GetConsoleWindowProc(IntPtr handle, IntPtr getRichEditDataPtr)
     {
-        try
-        {
-            var gch = GCHandle.FromIntPtr(pointer);
-            List<IntPtr> list = gch.Target as List<IntPtr>;
-            if (list == null)
-            {
-                throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
-            }
-            list.Add(handle);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var gcHandle = GCHandle.FromIntPtr(getRichEditDataPtr);
+        var getRichEditData = (GetRichEditInfo)gcHandle.Target;
+        var windowProcessId = 0U;
+        GetWindowThreadProcessId(handle, out windowProcessId);
+        if (windowProcessId != getRichEditData.targetProcId) return true;
+
+        var classname = new StringBuilder(256);
+        GetClassName(handle, classname, classname.Capacity);
+        if (classname.ToString() != "#32770") return true;
+        getRichEditData.targetConsole = handle;
+        return false;
+    }
+    private static bool GetRichEditProc(IntPtr handle, IntPtr getRichEditDataPtr)
+    {
+        var gcHandle = GCHandle.FromIntPtr(getRichEditDataPtr);
+        var getRichEditData = (GetRichEditInfo)gcHandle.Target;
+
+        var classname = new StringBuilder(256);
+        GetClassName(handle, classname, classname.Capacity);
+
+        if (classname.ToString() != "RichEdit20A") return true;
+        getRichEditData.targetRichEdit = handle;
+        return false;
     }
 
-
-    private delegate bool EnumWindowProc(IntPtr hWnd, IntPtr parameter);
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(GetConsoleWindowCallback enumProc, IntPtr lParam);
+    [DllImport("user32.dll", SetLastError=true)]
+    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    private delegate bool GetConsoleWindowCallback(IntPtr hWnd, IntPtr parameter);
+    private delegate bool GetRichEditCallback(IntPtr hWnd, IntPtr parameter);
     
     [DllImport("user32", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool EnumChildWindows(IntPtr window, EnumWindowProc callback, IntPtr i);
+    private static extern bool EnumChildWindows(IntPtr window, GetRichEditCallback callback, IntPtr i);
     
     
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-    public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-    
+    private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
     [DllImport("User32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int SendMessage(IntPtr hWnd, uint msg, int wParam, IntPtr lParam);
