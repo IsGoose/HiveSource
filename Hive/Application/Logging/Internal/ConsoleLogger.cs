@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
+using Hive.Application.Extern;
+using Microsoft.Win32.SafeHandles;
 
 namespace Hive.Application.Logging.Internal;
 
@@ -25,7 +28,17 @@ public class ConsoleLogger : IInternalLogger
         FileLogger.Initialise();
         this.Debug("ConsoleLogger Initialised");
         AllocConsole();
-
+        
+        //Get and Set StdOut. This Fixes an Issue where Nothing Can be Outputted to the Console Window @Truece
+        var stdHandle = Win32.GetStdHandle(-11);
+        var safeFileHandle = new SafeFileHandle(stdHandle, true);
+        var fileStream = new FileStream(safeFileHandle, FileAccess.Write);
+        var encoding = System.Text.Encoding.UTF8;
+        var standardOutput = new StreamWriter(fileStream, encoding);
+        standardOutput.AutoFlush = true;
+        Console.Clear();
+        Console.SetOut(standardOutput);
+        Console.SetError(standardOutput);
     }
 
     private void Log(string log, LogLevel logLevel)
