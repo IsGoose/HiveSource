@@ -136,13 +136,27 @@ namespace Hive.Application
                 throw new KeyNotFoundException(
                     $"The Target Table `{targetTable}` was Not Found in Schema `{IoC.Configuration.MySqlSchema}` for DbUpdate");
 
+            var targetTableStructure = _schemaStructure[targetTable.ToLower()];
+            if(targetTable.Length == 0)
+                throw new InvalidOperationException($"Table `{targetTable}` has No Columns for DBUpdate");
+            
             if (rowData.Length == 0)
                 throw new InvalidOperationException("Array to Update to Table has no Elements");
-            if (rowData[0] is not ArmaString)
-                throw new InvalidOperationException("First Element of Array Must be a String for DbUpdate Primary Key");
+            
+            //Validate Primary Key
+            var primaryKeyValid = false;
+            var primaryKeyData = targetTableStructure.SelectArray(0);
+            if (rowData[0] is ArmaString &&
+                primaryKeyData.SelectString(1).StartsWith("varchar", StringComparison.OrdinalIgnoreCase))
+                primaryKeyValid = true;
+            if (rowData[0] is ArmaNumber && primaryKeyData.SelectString(1) is "int" or "int unsigned")
+                primaryKeyValid = true;
+            
+            if(!primaryKeyValid)
+                throw new InvalidOperationException($"Table: `{targetTable}` Primary Key and Provided Primary Key Data Types Do Not Match for DbUpdate. Supported Primary Key Types are INT NOT NULL AUTO INCREMENT or VARCHAR");
+
             
             //Check if Table Has Soft Deletion Implemented
-            var targetTableStructure = _schemaStructure[targetTable.ToLower()];
             var tableColumnCount = targetTableStructure.Length;
             var tableHasSoftDeletion = tableColumnCount > 2 &&
                                        targetTableStructure.SelectArray(tableColumnCount - 2).SelectString(0) ==
@@ -155,12 +169,6 @@ namespace Hive.Application
             if(rowData.Length != tableColumnCount)
                 throw new ArgumentException($"Argument Count Mismatch Supplied {rowData.Length}, Expected {tableColumnCount}. If Table Implements Soft Deletion, Please Omit Values for these From the Input Array");
             
-            //Check that First Column of Table is Primary Key AND String
-            if (!targetTableStructure.SelectArray(0).SelectString(1)
-                    .StartsWith("varchar", StringComparison.OrdinalIgnoreCase) ||
-                !targetTableStructure.SelectArray(0).SelectBool(2))
-                throw new InvalidParameterException(
-                    $"The First Column in Table `{targetTable}` Must Be VARCHAR(36) And Marked as Primary Key");
             
             //Match Column to Input Data. Omit Primary Key from Statement
             var valuesTable = new Dictionary<string, string>();
@@ -187,9 +195,8 @@ namespace Hive.Application
             }
 
             //Finally, Construct MySQL Statement
-            var primaryKey = rowData.SelectString(0);
             var statement =
-                $"UPDATE `{targetTable}` SET {string.Join(",", dataSets)} WHERE `{targetTableStructure.SelectArray(0).SelectString(0)}` = '{primaryKey}'";
+                $"UPDATE `{targetTable}` SET {string.Join(",", dataSets)} WHERE `{targetTableStructure.SelectArray(0).SelectString(0)}` = {(rowData[0] is ArmaNumber ? rowData[0] : $"'{(rowData[0] as ArmaString).Value}'")}";
 
             //Execute Statement
             WriteRaw(statement);
@@ -204,7 +211,7 @@ namespace Hive.Application
         /// <exception cref="InvalidOperationException">Thrown When Input Array is Either Empty, or First Element is Not String</exception>
         /// <exception cref="ArgumentException">Thrown When Length of Input Array and Number of Columns in Target Do Not Match</exception>
         /// <exception cref="InvalidParameterException">Thrown When First Column in Target Table is Not VARCHAR & PrimaryKey</exception>
-        public void DbInsert(string targetTable, ArmaArray rowData)
+        public ArmaTypeBase DbInsert(string targetTable, ArmaArray rowData)
         {
             //Check Schema Contains Target Table
             if (!_schemaStructure.ContainsKey(targetTable.ToLower()))
@@ -213,11 +220,19 @@ namespace Hive.Application
 
             if (rowData.Length == 0)
                 throw new InvalidOperationException("Array to Insert into Table has no Elements");
-            if (rowData[0] is not ArmaString)
-                throw new InvalidOperationException("First Element of Array Must be a String for DbInsert Primary Key");
             
-            //Check if Table Has Soft Deletion Implemented
             var targetTableStructure = _schemaStructure[targetTable.ToLower()];
+            if(targetTable.Length == 0)
+                throw new InvalidOperationException($"Table `{targetTable}` has No Columns for DBInsert");
+            
+            var firstColumn = targetTableStructure.SelectArray(0);
+            if(!firstColumn.SelectBool(2))
+                throw new InvalidOperationException($"First Column in Table `{targetTable}` Must be Primary Key");
+            var pkDataType = firstColumn.SelectString(1).Replace(" unsigned","");
+            var pkExtra = firstColumn.SelectString(3);
+            var pkIsAutoIncrement = pkExtra == "auto_increment";
+
+            //Check if Table Has Soft Deletion Implemented
             var tableColumnCount = targetTableStructure.Length;
             var tableHasSoftDeletion = tableColumnCount > 2 &&
                                        targetTableStructure.SelectArray(tableColumnCount - 2).SelectString(0) ==
@@ -227,19 +242,41 @@ namespace Hive.Application
                 tableColumnCount -= 2;
 
             //Check Input Array Length Against Table Column Count
-            if(rowData.Length != tableColumnCount)
-                throw new ArgumentException($"Argument Count Mismatch Supplied {rowData.Length}, Expected {tableColumnCount}. If Table Implements Soft Deletion, Please Omit Values for these From the Input Array");
+            var generatedGuid = "";
+            if (rowData.Length != tableColumnCount)
+            {
+                //Try Prepend PrimaryKey if varchar
+                if(rowData.Length + 1 == tableColumnCount)
+                {
+                    if (pkDataType.StartsWith("varchar", StringComparison.OrdinalIgnoreCase))
+                    {
+                        generatedGuid = new Guid().ToString();
+                        rowData.Prepend(new ArmaString(generatedGuid));
+                    }
+                    if(pkDataType is "int" or "int unsigned")
+                        rowData.Prepend(new ArmaNumber(0));
+                    
+                    if(rowData.Length != tableColumnCount)
+                        throw new ArgumentException($"Argument Count Mismatch Supplied {rowData.Length}, Expected {tableColumnCount}. If Table Implements Soft Deletion, Please Omit Values for these From the Input Array");
+                } else
+                    throw new ArgumentException($"Argument Count Mismatch Supplied {rowData.Length}, Expected {tableColumnCount}. If Table Implements Soft Deletion, Please Omit Values for these From the Input Array");
+            }
+            var firstElement = rowData[0];
+            var isValidPrimaryKey = firstElement switch
+            {
+                
+                ArmaNumber when pkDataType is "int" or "int unsigned" && pkIsAutoIncrement => true,
+                ArmaString when pkDataType.StartsWith("varchar", StringComparison.OrdinalIgnoreCase) => true,
+                _ => false
+            };
             
-            //Check that First Column of Table is Primary Key AND String
-            if (!targetTableStructure.SelectArray(0).SelectString(1)
-                    .StartsWith("varchar", StringComparison.OrdinalIgnoreCase) ||
-                !targetTableStructure.SelectArray(0).SelectBool(2))
-                throw new InvalidParameterException(
-                    $"The First Column in Table `{targetTable}` Must Be VARCHAR(36) And Marked as Primary Key");
+            if(!isValidPrimaryKey)
+                throw new InvalidOperationException($"Table: `{targetTable}` Primary Key and Provided Primary Key Data Types Do Not Match for DbInsert. Supported Primary Key Types are INT NOT NULL AUTO INCREMENT or VARCHAR");
+            
             
             //Match Column to Input Data
             var dataSets = new Dictionary<string, string>();
-            for (int i = 0; i < rowData.Length; i++)
+            for (int i = (pkDataType == "int" ? 1 : 0); i < rowData.Length; i++)
             {
                 var fieldName = targetTableStructure.SelectArray(i).SelectString(0);
                 var value = rowData[i];
@@ -265,7 +302,12 @@ namespace Hive.Application
             var statement = $"INSERT INTO `{targetTable}` ({string.Join(",",dataSets.Keys)}) VALUES ({string.Join(",",dataSets.Values)})";
 
             //Execute Statement
-            WriteRaw(statement);
+           var id = WriteRaw(statement);
+            
+            //Return Primary Key Back to Caller
+            if (generatedGuid != "")
+                return new ArmaString(generatedGuid);
+            return new ArmaNumber(id);
         }
         #endregion
         
@@ -284,12 +326,12 @@ namespace Hive.Application
             
             //Read Table Names in Schema
             using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
-            using (var tableReader = ReadRaw("SHOW TABLES",connection))
+            using (var tableReader = ReadRaw($"SHOW TABLES",connection))
             {
                 while (tableReader.Read())
                 {
                     //Unfortunately, we cannot do this all at once, as 1 MySqlConnection cannot have 2 Open Readers at once.
-                    tableNames.Add(tableReader[0].ToString());
+                    tableNames.Add(tableReader[0].ToString().ToLower());
                 }
             }
 
@@ -303,7 +345,8 @@ namespace Hive.Application
                         var fieldName = describeReader["Field"].ToString();
                         var dataType = describeReader["Type"].ToString();
                         var isPrimaryKey = describeReader["Key"].ToString() == "PRI";
-                        tableStructure.Append(new ArmaArray(fieldName, dataType, isPrimaryKey));
+                        var extra = describeReader["Extra"];
+                        tableStructure.Append(new ArmaArray(fieldName, dataType, isPrimaryKey,extra));
                     }
                 }
 
@@ -317,7 +360,7 @@ namespace Hive.Application
         /// </summary>
         /// <param name="command">MySQL Query to Execute</param>
         /// <returns>Number of Affected Rows</returns>
-        public int WriteRaw(string statement)
+        public int WriteRawRows(string statement)
         {
             var affectedRows = 0;
             using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
@@ -325,9 +368,26 @@ namespace Hive.Application
             using var command = connection.CreateCommand();
             command.CommandText = statement;
             affectedRows = command.ExecuteNonQuery();
-            IoC.InternalLogger.Debug($"DBInterface.WriteRaw AffectedRows: {affectedRows} with Statement: {statement}");
+            IoC.InternalLogger.Debug($"DBInterface.WriteRawRows AffectedRows: {affectedRows} with Statement: {statement}");
 
             return affectedRows;
+        }
+        
+        /// <summary>
+        /// Executes Raw MySQL Query. Use for Updating Individual Columns or When Provided Abstractions are Not Applicable
+        /// </summary>
+        /// <param name="command">MySQL Query to Execute</param>
+        /// <returns>Last Id that was Inserted in to the Table</returns>
+        public long WriteRaw(string statement)
+        {
+            var affectedRows = 0;
+            using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = statement; command.ExecuteNonQuery();
+            IoC.InternalLogger.Debug($"DBInterface.WriteRaw with Statement: {statement}");
+
+            return command.LastInsertedId;
         }
 
         /// <summary>
