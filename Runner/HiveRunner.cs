@@ -52,13 +52,13 @@ namespace Runner
             Console.ReadKey();
             var createResult = SendToExtension("Example", "Create",
                 new ArmaArray("ExampleString", 50.25, new ArmaArray(1, "Hello", 2.5, false, "World")));
-            var createResultId = createResult.SelectString(1);
+            var createResultId = createResult.SelectNumber(1);
             Console.WriteLine($"Created Id: {createResultId}");
 
             Console.WriteLine();
             Console.WriteLine("Press Any Key to Get Data From the Id..");
             Console.ReadKey();
-            var singleData = SendToExtension("Example", "GetSingle", new ArmaString(createResultId));
+            var singleData = SendToExtension("Example", "GetSingle", new ArmaNumber(createResultId));
             Console.WriteLine("Data From GetSingle Call:");
             Console.WriteLine(singleData.SelectArray(1));
 
@@ -67,7 +67,7 @@ namespace Runner
             Console.ReadKey();
             var createResult2 = SendToExtension("Example", "Create",
                 new ArmaArray("ExampleString2", 25.50, new ArmaArray(1, "Hello", 5.2, true, "Again")));
-            Console.WriteLine($"Created Id: {createResult2.SelectString(1)}");
+            Console.WriteLine($"Created Id: {createResult2.SelectNumber(1)}");
 
             Console.WriteLine();
             Console.WriteLine("Press Any Key to Update the First Row we Inserted..");
@@ -84,7 +84,7 @@ namespace Runner
             
             Console.WriteLine("Press Any Key to Delete the Second Row we Inserted..");
             Console.ReadKey();
-            var deleteResult = SendToExtension("Example", "Delete",new ArmaString(createResult2.SelectString(1)));
+            var deleteResult = SendToExtension("Example", "Delete",new ArmaNumber(createResult2.SelectNumber(1)));
             Console.WriteLine($"Rows Affected: {deleteResult.SelectNumber(1)}");
 
         }

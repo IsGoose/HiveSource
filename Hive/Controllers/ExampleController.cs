@@ -12,7 +12,7 @@ public class ExampleController
     /*
      * Example Table Structure: exampletable1 *
      * Column Name - DataType   Attributes
-     Id -               VARCHAR(36) PRIMARY KEY NOT NULL
+     Id -               INT PRIMARY KEY NOT NULL AUTO_INCREMENT
      ExampleString -    VARCHAR(35)
      ExampleNumber -    DOUBLE
      ExampleArray -     TEXT
@@ -21,16 +21,13 @@ public class ExampleController
      DeletedAt -        DATETIME
      */
     [Synchronous]
-    public static string Create(ArmaArray data)
+    public static long Create(ArmaArray data)
     {
         //Data = ["ExampleString",50.25,[1,"Hello",2.5,false,"World"]]  as Received from Arma
         //So We Need to Insert Id & DateCreated, and also return Id
-        var id = Guid.NewGuid().ToString();
-        data.Prepend(new ArmaString(id));
         data.Append(new ArmaString(DateTime.Now.ToArmaString()));
         
-        IoC.DBInterface.DbInsert("exampletable1",data);
-        return id;
+        return System.Convert.ToInt64((IoC.DBInterface.DbInsert("exampletable1",data) as ArmaNumber).Value);
     }
     
     [Synchronous]
@@ -41,7 +38,7 @@ public class ExampleController
     }
     
     [Synchronous]
-    public static ArmaArray GetSingle(string id)
+    public static ArmaArray GetSingle(long id)
     {
         //We Need 1 Entry from Table. Id is Received from Arma
         return IoC.DBInterface.DbRead("exampletable1","*",$"`Id` = '{id}'");
@@ -55,9 +52,9 @@ public class ExampleController
     }
 
     [Synchronous]
-    public static int Delete(string id)
+    public static int Delete(long id)
     {
         //We Need to Delete a Row, and Return Number of Affected Rows. Id is Received from Arma
-        return IoC.DBInterface.WriteRaw($"DELETE FROM `exampletable1` WHERE `Id` = '{id}'");
+        return IoC.DBInterface.WriteRawRows($"DELETE FROM `exampletable1` WHERE `Id` = '{id}'");
     }
 }
