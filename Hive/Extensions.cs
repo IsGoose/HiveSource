@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ArmaTools.ArrayParser;
 using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application.Exceptions;
@@ -7,6 +8,11 @@ namespace Hive
 {
     public static class Extensions
     {
+        public static string ToMySqlFormat(this DateTime dt)
+        {
+            return dt.ToString("yyyy-MM-dd HH:mm:ss.ffffff");
+        }
+        
         //TODO: Move to ArrayParser Natively
         public static ArmaArray FromList(this ArmaArray array, List<ArmaTypeBase> list)
         {
