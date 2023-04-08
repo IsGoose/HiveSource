@@ -380,7 +380,6 @@ namespace Hive.Application
         /// <returns>Last Id that was Inserted in to the Table</returns>
         public long WriteRaw(string statement)
         {
-            var affectedRows = 0;
             using var connection = new MySqlConnection(_connectionString.GetConnectionString(true));
             connection.Open();
             using var command = connection.CreateCommand();
