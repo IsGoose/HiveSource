@@ -52,13 +52,13 @@ public class ConsoleLogger : IInternalLogger
             //Green
             LogLevel.Trace or LogLevel.Debug => ConsoleColor.White,
             LogLevel.Info=> ConsoleColor.Green,
-            //Yellow (Since Console Does not Have an Orange Colour
+            //Yellow (Since Console Does not Have an Orange Colour)
             LogLevel.Warn => ConsoleColor.Yellow,
             //Red
             LogLevel.Error or LogLevel.Fatal or _ => ConsoleColor.Red
         };
         Console.ForegroundColor = consoleColour;
-        Console.WriteLine($"{DateTime.Now:H:mm:ss} [{Enum.GetName(typeof(LogLevel), logLevel)}] {log}");
+        Console.WriteLine($"{DateTime.Now:HH:mm:ss} [{Enum.GetName(typeof(LogLevel), logLevel)}] {log}");
         Console.ResetColor();
     }
 
