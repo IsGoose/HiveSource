@@ -27,7 +27,7 @@ public class ConsoleLogger : IInternalLogger
         FileLogger = new InternalFileLogger();
         FileLogger.Initialise();
         this.Debug("ConsoleLogger Initialised");
-        AllocConsole();
+        Win32.AllocConsole();
         
         //Get and Set StdOut. This Fixes an Issue where Nothing Can be Outputted to the Console Window @Truece
         var stdHandle = Win32.GetStdHandle(-11);
@@ -61,7 +61,4 @@ public class ConsoleLogger : IInternalLogger
         Console.WriteLine($"{DateTime.Now:HH:mm:ss} [{Enum.GetName(typeof(LogLevel), logLevel)}] {log}");
         Console.ResetColor();
     }
-
-    [DllImport("kernel32")]
-    private static extern bool AllocConsole();
 }

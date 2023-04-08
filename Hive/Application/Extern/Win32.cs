@@ -115,6 +115,8 @@ public static class Win32
         return false;
     }
 
+    [DllImport("kernel32")]
+    public static extern bool AllocConsole();
     [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
     public static extern IntPtr GetStdHandle(int nStdHandle);
     [DllImport("user32.dll")]
