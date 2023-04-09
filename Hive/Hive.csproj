@@ -114,7 +114,6 @@
         <Compile Include="Application\Logging\Internal\ProcessLogger.cs" />
         <Compile Include="Application\Logging\LogLevel.cs" />
         <Compile Include="Application\Logging\LogMapInfo.cs" />
-        <Compile Include="Controllers\DatabaseController.cs" />
         <Compile Include="Controllers\ExampleController.cs" />
         <Compile Include="Controllers\SystemController.cs" />
         <Compile Include="Extensions.cs" />
