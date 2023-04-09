@@ -10,6 +10,7 @@ using ArmaTools.ArrayParser.DataTypes;
 using Hive.Application;
 using Hive.Application.Attributes;
 using Hive.Application.Exceptions;
+using Hive.Application.Extern;
 
 namespace Hive
 {
@@ -47,7 +48,15 @@ namespace Hive
                 #if DEBUG
                 exceptionMessage = e.ToString();
                 #endif
-                IoC.InternalLogger.Error($"Exception Thrown: {exceptionMessage}");
+                if (IoC.HiveProcess is null || !HiveProcess.IsSetup)
+                {
+                    Win32.MessageBox(IntPtr.Zero, exceptionMessage, "Internal Hive Error",
+                        0x00000010L | 0x00000000L);
+                    Win32.ExitProcess(1);
+                }
+                else
+                    IoC.InternalLogger.Error($"Exception Thrown: {exceptionMessage}");
+                
                 //Always Return False in Event of Thrown Exception
                 output.Append(new ArmaArray(false));
             }
@@ -63,7 +72,7 @@ namespace Hive
             var controllerName = entryArray.Select<ArmaString>(0).Value;
             var methodName = entryArray.Select<ArmaString>(1).Value;
 
-            if (methodName != "Setup" && !HiveProcess.IsSetup)
+            if (methodName != "Setup" && (IoC.HiveProcess is not null || !HiveProcess.IsSetup))
                 throw new ApplicationException(
                     "Hive is not Setup. Please Call the HiveController::Setup Method First.");
 
