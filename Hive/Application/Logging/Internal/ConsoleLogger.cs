@@ -39,6 +39,18 @@ public class ConsoleLogger : IInternalLogger
         Console.Clear();
         Console.SetOut(standardOutput);
         Console.SetError(standardOutput);
+        
+        //Set Console Mode to Disable Input. (Input to Console Locks Hive)
+        var consoleHandle = Win32.GetStdHandle(-10);
+        if (!Win32.GetConsoleMode(consoleHandle, out uint consoleMode))
+            throw new InvalidOperationException("Could not GetConsoleMode");
+
+        consoleMode &= ~Win32.ENABLE_QUICK_EDIT;
+        consoleMode &= ~Win32.ENABLE_MOUSE_INPUT;
+
+        if (!Win32.SetConsoleMode(consoleHandle, consoleMode))
+            throw new InvalidOperationException("Could not SetConsoleMode");
+
     }
 
     private void Log(string log, LogLevel logLevel)

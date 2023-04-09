@@ -63,6 +63,9 @@ public static class Win32
     public const int FR_MATCHCASE = 0x00000004;
     public const int FR_DOWN = 0x00000001;
     public const int WM_SETREDRAW = 0x000B;
+    
+    public const uint ENABLE_QUICK_EDIT = 0x0040;
+    public const uint ENABLE_MOUSE_INPUT = 0x0010;
 
     public static IntPtr GetRichEdit(int processId)
     {
@@ -115,6 +118,11 @@ public static class Win32
         return false;
     }
 
+    [DllImport("kernel32.dll")]
+    public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll")]
+    public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
     [DllImport("kernel32")]
     public static extern bool AllocConsole();
     [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
