@@ -72,7 +72,7 @@ namespace Hive
             var controllerName = entryArray.Select<ArmaString>(0).Value;
             var methodName = entryArray.Select<ArmaString>(1).Value;
 
-            if (methodName != "Setup" && (IoC.HiveProcess is not null || !HiveProcess.IsSetup))
+            if (methodName != "Setup" && (IoC.HiveProcess is null || !HiveProcess.IsSetup))
                 throw new ApplicationException(
                     "Hive is not Setup. Please Call the HiveController::Setup Method First.");
 
