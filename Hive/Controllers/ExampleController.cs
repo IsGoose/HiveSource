@@ -25,7 +25,7 @@ public class ExampleController
     {
         //Data = ["ExampleString",50.25,[1,"Hello",2.5,false,"World"]]  as Received from Arma
         //So We Need to Insert Id & DateCreated, and also return Id
-        data.Append(new ArmaString(DateTime.Now.ToArmaString()));
+        data.Append(new ArmaString(DateTime.Now.ToMySqlFormat()));
         
         return System.Convert.ToInt64((IoC.DBInterface.DbInsert("exampletable1",data) as ArmaNumber).Value);
     }
