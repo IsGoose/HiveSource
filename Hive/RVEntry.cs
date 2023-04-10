@@ -81,7 +81,7 @@ namespace Hive
                 BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Static);
 
             if (method is null)
-                throw new ApplicationException($"Method: {controllerName}::{methodName} was not Found");
+                throw new ApplicationException($"Method: {controllerName}Controller::{methodName} was not Found");
 
             var methodAttributes = method.GetCustomAttributes(false);
             var hasAttributes = methodAttributes.Length > 0;
