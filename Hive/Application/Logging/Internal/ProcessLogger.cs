@@ -31,7 +31,7 @@ public class ProcessLogger : IInternalLogger
         if (_textBoxHandle != IntPtr.Zero) return;
         FileLogger.Log("Error","Hive could Not Get OA Server MainWindowHandle",LogLevel.Fatal);
         Win32.MessageBox(IntPtr.Zero, "Unable to Get MainWindowHandle", "Internal Hive Error",
-            0x00000010L | 0x00000000L);
+            Win32.MB_ICONERROR | Win32.MB_OK);
         //Win32.ExitProcess(1);
     }
     public void Trace(string log) => Log(log,LogLevel.Trace);

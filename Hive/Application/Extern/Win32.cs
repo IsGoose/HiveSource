@@ -66,6 +66,9 @@ public static class Win32
     
     public const uint ENABLE_QUICK_EDIT = 0x0040;
     public const uint ENABLE_MOUSE_INPUT = 0x0010;
+    
+    public const long MB_ICONERROR = 0x00000010L;
+    public const long MB_OK = 0x00000000L;
 
     public static IntPtr GetRichEdit(int processId)
     {

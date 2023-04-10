@@ -88,7 +88,7 @@ namespace Hive.Controllers
 				
 				
 				Win32.MessageBox(IntPtr.Zero, crashMessage, "Internal Hive Error",
-					0x00000010L | 0x00000000L);
+					Win32.MB_ICONERROR | Win32.MB_OK);
 				Win32.ExitProcess(1);
 				
 				return false;
